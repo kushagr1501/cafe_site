@@ -1,4 +1,4 @@
-import { useRef, useLayoutEffect } from 'react';
+import { useRef, useLayoutEffect, Suspense, useMemo } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Environment, Float, ContactShadows, Sparkles, PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
@@ -18,55 +18,99 @@ function MokaPot({ isMobile }) {
         }
     });
 
-    const lavenderMaterial = new THREE.MeshPhysicalMaterial({
-        color: '#B5A0D9',
-        roughness: 0.3,
-        metalness: 0.1,
-        clearcoat: 0.5,
-        flatShading: true
-    });
+    // Optimization: Reduced detail for mobile
+    const detail = isMobile ? 12 : 32;
+    const shadowEnabled = !isMobile;
 
-    const blackMaterial = new THREE.MeshStandardMaterial({
+    const lavenderMaterial = useMemo(() => {
+        if (isMobile) {
+            return new THREE.MeshStandardMaterial({
+                color: '#6B5B95', // Darker purple so it doesn't look white under bright light
+                roughness: 0.3,
+                metalness: 0.4,
+                envMapIntensity: 1.0
+            });
+        }
+        return new THREE.MeshPhysicalMaterial({
+            color: '#6B5B95', // Darker purple base
+            roughness: 0.2,
+            metalness: 0.4,
+            clearcoat: 0.5,
+            clearcoatRoughness: 0.1,
+            reflectivity: 0.5,
+            envMapIntensity: 1.5
+        });
+    }, [isMobile]);
+
+    const chromeMaterial = useMemo(() => new THREE.MeshStandardMaterial({
+        color: '#ffffff',
+        roughness: 0.1,
+        metalness: 1.0,
+    }), []);
+
+    const blackMaterial = useMemo(() => new THREE.MeshStandardMaterial({
         color: '#1a1a1a',
         roughness: 0.8
-    });
+    }), []);
 
-    const scale = isMobile ? 0.65 : 0.85;
+    // Optimization: Slightly smaller scale as requested
+    const scale = isMobile ? 0.55 : 0.75;
     const position = isMobile ? [0, 0.5, 0] : [0.2, -0.2, 0];
 
     return (
         <group ref={ref} scale={scale} rotation={[0, -Math.PI / 4, 0]} position={position}>
-            <mesh position={[0, -0.8, 0]} castShadow receiveShadow>
+            {/* Bottom Chamber - Faceted */}
+            <mesh position={[0, -0.8, 0]} castShadow={shadowEnabled} receiveShadow={shadowEnabled}>
                 <cylinderGeometry args={[0.7, 0.9, 1.4, 8]} />
                 <primitive object={lavenderMaterial} />
             </mesh>
+
+            {/* Middle Ring - Accent */}
             <mesh position={[0, -0.05, 0]}>
-                <cylinderGeometry args={[0.71, 0.71, 0.1, 8]} />
-                <meshStandardMaterial color="#6E5C8F" roughness={0.4} />
+                <cylinderGeometry args={[0.72, 0.72, 0.15, detail]} />
+                <primitive object={lavenderMaterial} />
             </mesh>
-            <mesh position={[0, 0.7, 0]} castShadow receiveShadow>
+
+            {/* Top Chamber - Faceted */}
+            <mesh position={[0, 0.7, 0]} castShadow={shadowEnabled} receiveShadow={shadowEnabled}>
                 <cylinderGeometry args={[0.9, 0.7, 1.4, 8]} />
                 <primitive object={lavenderMaterial} />
             </mesh>
+
+            {/* Lid - Faceted */}
             <mesh position={[0, 1.5, 0]}>
+                <cylinderGeometry args={[0.91, 0.4, 0.2, 8]} />
+                <primitive object={lavenderMaterial} />
+            </mesh>
+            <mesh position={[0, 1.7, 0]}>
                 <coneGeometry args={[0.91, 0.4, 8]} />
                 <primitive object={lavenderMaterial} />
             </mesh>
-            <mesh position={[0, 1.75, 0]}>
-                <cylinderGeometry args={[0.15, 0.1, 0.3, 8]} />
+
+            {/* Top Knob - Smooth */}
+            <mesh position={[0, 2.0, 0]}>
+                <cylinderGeometry args={[0.15, 0.1, 0.35, detail]} />
                 <primitive object={blackMaterial} />
             </mesh>
-            <mesh position={[0.7, 1.3, 0]} rotation={[0, 0, -Math.PI / 4]}>
-                <coneGeometry args={[0.15, 0.5, 8]} />
+            <mesh position={[0, 2.2, 0]}>
+                <sphereGeometry args={[0.12, detail, detail]} />
+                <primitive object={blackMaterial} />
+            </mesh>
+
+            {/* Spout - Smoother connection */}
+            <mesh position={[0.65, 1.3, 0]} rotation={[0, 0, -Math.PI / 6]}>
+                <cylinderGeometry args={[0.15, 0.25, 0.6, 8]} />
                 <primitive object={lavenderMaterial} />
             </mesh>
-            <group position={[-0.9, 0.5, 0]}>
-                <mesh position={[0, -0.4, 0]} rotation={[0, 0, 0.1]}>
-                    <boxGeometry args={[0.2, 1.2, 0.15]} />
+
+            {/* Handle - Refined */}
+            <group position={[-0.95, 0.5, 0]}>
+                <mesh position={[0, -0.4, 0]} rotation={[0, 0, 0.05]}>
+                    <capsuleGeometry args={[0.12, 1.2, 8, 16]} />
                     <primitive object={blackMaterial} />
                 </mesh>
-                <mesh position={[0.25, 0.15, 0]} rotation={[0, 0, 0]}>
-                    <boxGeometry args={[0.5, 0.15, 0.15]} />
+                <mesh position={[0.3, 0.3, 0]} rotation={[0, 0, -Math.PI / 2]}>
+                    <capsuleGeometry args={[0.1, 0.4, 8, 16]} />
                     <primitive object={blackMaterial} />
                 </mesh>
             </group>
@@ -91,26 +135,28 @@ function SceneContent() {
     return (
         <>
             <PerspectiveCamera makeDefault position={[0, 0, 7.5]} fov={30} ref={cameraRef} />
-            <ambientLight intensity={0.7} />
-            <spotLight position={[5, 10, 5]} angle={0.5} penumbra={0.5} intensity={2} color="#fff" castShadow />
-            <spotLight position={[-8, 5, -5]} angle={0.5} penumbra={1} intensity={3} color="#D8BFD8" />
-            <pointLight position={[0, -2, 4]} intensity={1} color="#fff" />
-            <Environment preset="studio" />
+            <ambientLight intensity={0.5} />
+            <spotLight position={[5, 10, 5]} angle={0.5} penumbra={0.5} intensity={2} color="#ffffff" castShadow={!isMobile} />
+            <spotLight position={[-8, 2, -5]} angle={0.5} penumbra={1} intensity={2} color="#D8BFD8" />
+            <rectAreaLight position={[0, 5, 10]} width={10} height={10} intensity={2.0} color="#B5A0D9" />
+            <Environment preset="city" />
             <Float speed={1.5} rotationIntensity={0.2} floatIntensity={0.2}>
                 <MokaPot isMobile={isMobile} />
             </Float>
-            <Sparkles count={25} scale={5} size={4} speed={0.5} opacity={0.5} color="#D8BFD8" />
-            <ContactShadows position={[0, -2.5, 0]} opacity={0.4} scale={10} blur={3} far={4} color="black" />
+            <Sparkles count={isMobile ? 15 : 25} scale={5} size={4} speed={0.5} opacity={0.5} color="#D8BFD8" />
+            <ContactShadows position={[0, -2.5, 0]} opacity={0.4} scale={10} blur={3} far={4} color="black" frames={isMobile ? 1 : Infinity} />
         </>
     );
 }
 
-export default function HeroSection() {
+export default function HeroSection({ startAnimation = true }) {
     const container = useRef(null);
     const textLeft = useRef(null);
     const textRight = useRef(null);
 
     useLayoutEffect(() => {
+        if (!startAnimation) return;
+
         let ctx = gsap.context(() => {
             const tl = gsap.timeline();
             tl.fromTo([textLeft.current, textRight.current],
@@ -141,7 +187,7 @@ export default function HeroSection() {
         }, container);
 
         return () => ctx.revert();
-    }, []);
+    }, [startAnimation]);
 
     return (
         <section ref={container} className="relative h-screen w-full bg-[#111] overflow-hidden flex flex-col items-center justify-center">
@@ -170,8 +216,10 @@ export default function HeroSection() {
             </div>
 
             <div className="absolute inset-0 z-10 w-full h-full md:-translate-x-[2vw] hidden md:block">
-                <Canvas dpr={[1, 2]} gl={{ antialias: true }} shadows>
-                    <SceneContent />
+                <Canvas dpr={[1, 1.5]} gl={{ antialias: true, powerPreference: "high-performance" }} shadows>
+                    <Suspense fallback={null}>
+                        <SceneContent />
+                    </Suspense>
                 </Canvas>
             </div>
 
