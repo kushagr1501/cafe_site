@@ -1,4 +1,4 @@
-import { useRef, useLayoutEffect, Suspense, useMemo } from 'react';
+import { useRef, useLayoutEffect, Suspense} from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Environment, Float, ContactShadows, Sparkles, PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
@@ -6,7 +6,6 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
-
 function MokaPot({ isMobile }) {
     const ref = useRef();
 
@@ -21,105 +20,110 @@ function MokaPot({ isMobile }) {
     const detail = isMobile ? 32 : 64;
     const shadowEnabled = !isMobile;
 
-    const glassMaterial = useMemo(() => new THREE.MeshPhysicalMaterial({
+
+    const glassConfig = {
         color: '#ffffff',
-        roughness: 0.05,        
-        metalness: 0.05,
         transmission: 1.0,      
-        thickness: 0.5,         
-        ior: 1.5,              
+        thickness: 0.5,        
+        roughness: 0.05,        
+        ior: 1.5,
         clearcoat: 1.0,
         attenuationTint: '#ffffff',
         attenuationDistance: 0.5,
-        envMapIntensity: 2.0    
-    }), []);
+        envMapIntensity: 1.0,
+        transparent: true,
+        side: THREE.DoubleSide  
+    };
 
-    const coffeeLiquidMaterial = useMemo(() => new THREE.MeshStandardMaterial({
-        color: '#3b1c0a',       
-        roughness: 0.3,         
+    const coffeeConfig = {
+        color: '#1a0f00',       
+        roughness: 0.4,
         metalness: 0.0,
-        envMapIntensity: 0.5
-    }), []);
+    };
 
-    const chromeMaterial = useMemo(() => new THREE.MeshStandardMaterial({
-        color: '#aaaaaa',
-        roughness: 0.2,
+    const chromeConfig = {
+        color: '#ffffff',
+        roughness: 0.1,
         metalness: 1.0,
         envMapIntensity: 1.5
-    }), []);
+    };
 
-    const blackMaterial = useMemo(() => new THREE.MeshStandardMaterial({
-        color: '#0a0a0a',
-        roughness: 0.8,
+    const blackConfig = {
+        color: '#050505',
+        roughness: 0.5,
         metalness: 0.1
-    }), []);
+    };
 
     const scale = isMobile ? 0.55 : 0.75;
     const position = isMobile ? [0, 0.5, 0] : [0.2, -0.2, 0];
 
     return (
         <group ref={ref} scale={scale} rotation={[0, -Math.PI / 4, 0]} position={position}>
-            
+
             <group position={[0, -0.8, 0]}>
                 <mesh castShadow={shadowEnabled} receiveShadow={shadowEnabled}>
                     <cylinderGeometry args={[0.7, 0.9, 1.4, detail]} />
-                    <primitive object={glassMaterial} />
+                    <meshPhysicalMaterial {...glassConfig} />
                 </mesh>
-                <mesh scale={[0.92, 0.9, 0.92]} position={[0, -0.1, 0]}>
-                    <cylinderGeometry args={[0.7, 0.9, 1.2, detail]} />
-                    <primitive object={coffeeLiquidMaterial} />
+                <mesh scale={[0.94, 0.95, 0.94]}>
+                    <cylinderGeometry args={[0.7, 0.9, 1.3, detail]} />
+                    <meshStandardMaterial {...coffeeConfig} />
                 </mesh>
             </group>
 
             <mesh position={[0, -0.05, 0]}>
                 <cylinderGeometry args={[0.72, 0.72, 0.15, detail]} />
-                <primitive object={chromeMaterial} />
+                <meshPhysicalMaterial {...chromeConfig} />
+            </mesh>
+
+            <mesh position={[0, 0.1, 0]}>
+                <cylinderGeometry args={[0.1, 0.1, 0.4, 16]} />
+                <meshStandardMaterial color="#888888" roughness={0.2} metalness={1.0} />
             </mesh>
 
             <group position={[0, 0.7, 0]}>
                 <mesh castShadow={shadowEnabled} receiveShadow={shadowEnabled}>
                     <cylinderGeometry args={[0.9, 0.7, 1.4, detail]} />
-                    <primitive object={glassMaterial} />
+                    <meshPhysicalMaterial {...glassConfig} />
                 </mesh>
-                <mesh scale={[0.92, 0.8, 0.92]} position={[0, -0.15, 0]}>
+                <mesh scale={[0.94, 0.6, 0.94]} position={[0, -0.25, 0]}>
                     <cylinderGeometry args={[0.9, 0.7, 1.4, detail]} />
-                    <primitive object={coffeeLiquidMaterial} />
+                    <meshStandardMaterial {...coffeeConfig} />
                 </mesh>
             </group>
 
             <group position={[0, 1.5, 0]}>
                 <mesh>
                     <cylinderGeometry args={[0.91, 0.4, 0.2, detail]} />
-                    <primitive object={glassMaterial} />
+                    <meshPhysicalMaterial {...glassConfig} />
                 </mesh>
                 <mesh position={[0, 0.2, 0]}>
                     <coneGeometry args={[0.91, 0.4, detail]} />
-                    <primitive object={glassMaterial} />
+                    <meshPhysicalMaterial {...glassConfig} />
                 </mesh>
             </group>
 
             <mesh position={[0, 2.0, 0]}>
                 <cylinderGeometry args={[0.15, 0.1, 0.35, detail]} />
-                <primitive object={blackMaterial} />
+                <meshStandardMaterial {...blackConfig} />
             </mesh>
             <mesh position={[0, 2.2, 0]}>
                 <sphereGeometry args={[0.12, detail, detail]} />
-                <primitive object={blackMaterial} />
+                <meshStandardMaterial {...blackConfig} />
             </mesh>
-
             <mesh position={[0.65, 1.3, 0]} rotation={[0, 0, -Math.PI / 6]}>
                 <cylinderGeometry args={[0.15, 0.25, 0.6, detail]} />
-                <primitive object={glassMaterial} />
+                <meshPhysicalMaterial {...glassConfig} />
             </mesh>
 
             <group position={[-0.95, 0.5, 0]}>
                 <mesh position={[0, -0.4, 0]} rotation={[0, 0, 0.05]}>
                     <capsuleGeometry args={[0.12, 1.2, 8, 16]} />
-                    <primitive object={blackMaterial} />
+                    <meshStandardMaterial {...blackConfig} />
                 </mesh>
                 <mesh position={[0.3, 0.3, 0]} rotation={[0, 0, -Math.PI / 2]}>
                     <capsuleGeometry args={[0.1, 0.4, 8, 16]} />
-                    <primitive object={blackMaterial} />
+                    <meshStandardMaterial {...blackConfig} />
                 </mesh>
             </group>
         </group>
@@ -143,56 +147,54 @@ function SceneContent() {
     return (
         <>
             <PerspectiveCamera makeDefault position={[0, 0, 7.5]} fov={30} ref={cameraRef} />
-            
-            <ambientLight intensity={0.4} color="#ffffff" />
-            
-            <spotLight 
-                position={[5, 5, 5]} 
-                angle={0.5} 
-                penumbra={1} 
-                intensity={0.8} 
-                color="#fff0dd" 
-                castShadow={!isMobile} 
-                shadow-bias={-0.0001}
-            />
-            
-            <spotLight 
-                position={[-5, 5, -5]} 
-                angle={0.5} 
-                penumbra={1} 
-                intensity={1.0} 
-                color="#dcd0ff" 
+
+            <ambientLight intensity={0.2} color="#ffffff" />
+
+            <spotLight
+                position={[5, 10, 5]}
+                angle={0.5}
+                penumbra={1}
+                intensity={0.7}
+                color="#ffffff"
+                castShadow={!isMobile}
             />
 
-            <spotLight 
-                position={[0, -5, 5]} 
-                intensity={0.3} 
-                color="#white" 
+            <spotLight
+                position={[-5, 5, -5]}
+                angle={0.5}
+                penumbra={1}
+                intensity={1.0}
+                color="#dcd0ff"
             />
-            
+
+            <spotLight
+                position={[0, -5, 5]}
+                intensity={0.5}
+                color="#8B4513"
+            />
+
             <Environment preset="city" blur={1} />
-            
+
             <Float speed={1.5} rotationIntensity={0.2} floatIntensity={0.2}>
                 <MokaPot isMobile={isMobile} />
             </Float>
-            
-            <Sparkles 
-                count={isMobile ? 15 : 30} 
-                scale={6} 
-                size={3} 
-                speed={0.4} 
-                opacity={0.4} 
-                color="#E6E6FA" 
+
+            <Sparkles
+                count={isMobile ? 15 : 25}
+                scale={5}
+                size={3}
+                speed={0.4}
+                opacity={0.3}
+                color="#D8BFD8"
             />
-            
-            <ContactShadows 
-                position={[0, -2.5, 0]} 
-                opacity={0.4} 
-                scale={10} 
-                blur={2.5} 
-                far={4} 
-                color="#000000" 
-                frames={isMobile ? 1 : 60}
+
+            <ContactShadows
+                position={[0, -2.5, 0]}
+                opacity={0.4}
+                scale={10}
+                blur={2.5}
+                far={4}
+                color="#000000"
             />
         </>
     );
