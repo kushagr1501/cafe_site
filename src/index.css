@@ -1,0 +1,122 @@
+@import "tailwindcss";
+
+/* ========================================
+   KOBIE COFFEE - DARK LUXURY SYSTEM
+======================================== */
+
+:root {
+  /* Dark Luxury Palette */
+  --kobie-bg: #0F0F0F;
+  /* Deepest Black */
+  --kobie-surface: #1A1A1A;
+  /* Soft Black */
+  --kobie-text: #EAEAEA;
+  /* Off-White */
+  --kobie-maroon: #8B2E2E;
+  /* Vibrant Merlot */
+  --kobie-gold: #D4AF37;
+  /* True Gold */
+
+  /* Typography */
+  --font-display: 'Anton', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-serif: 'Playfair Display', serif;
+
+  /* Cinematic Easing */
+  --ease-cinematic: cubic-bezier(0.19, 1, 0.22, 1);
+
+  /* Glass */
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ===== Base ===== */
+body {
+  background-color: var(--kobie-bg);
+  color: var(--kobie-text);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--kobie-maroon);
+  color: white;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-serif {
+  font-family: var(--font-serif);
+}
+
+/* ===== Utilities ===== */
+.text-gold {
+  color: var(--kobie-gold);
+}
+
+.bg-surface {
+  background-color: var(--kobie-surface);
+}
+
+/* ===== Premium Buttons ===== */
+.btn-magnetic {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem 3rem;
+  background: var(--kobie-text);
+  color: var(--kobie-bg);
+  border-radius: 100px;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  font-weight: 700;
+  overflow: hidden;
+  transition: transform 0.4s var(--ease-cinematic);
+}
+
+.btn-magnetic:hover {
+  transform: scale(1.05);
+  background: white;
+}
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--kobie-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--kobie-surface);
+  border-radius: 10px;
+}
+
+/* ===== Animations ===== */
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+  display: flex;
+  /* Ensure flex for ticker */
+  width: max-content;
+  /* Ensure width for ticker */
+}
+
+.perspective-1000 {
+  perspective: 1000px;
+}
