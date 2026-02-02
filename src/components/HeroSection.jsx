@@ -18,76 +18,86 @@ function MokaPot({ isMobile }) {
         }
     });
 
-    // Optimization: Reduced detail for mobile
-    const detail = isMobile ? 12 : 32;
+    const detail = isMobile ? 32 : 64;
     const shadowEnabled = !isMobile;
 
-    const bodyMaterial = useMemo(() => {
-        if (isMobile) {
-            return new THREE.MeshStandardMaterial({
-                color: '#050505',
-                roughness: 0.2,
-                metalness: 0.4,
-                envMapIntensity: 0.1
-            });
-        }
-        return new THREE.MeshPhysicalMaterial({
-            color: '#000000',
-            roughness: 0.25,  // Slightly rougher to diffuse the reflection
-            metalness: 0.4,   // Less metallic = less white reflection
-            clearcoat: 0.8,   // Keep the shine
-            clearcoatRoughness: 0.1,
-            reflectivity: 0.1, // Minimal base reflectivity
-            envMapIntensity: 0.1 // Drastically reduced environment reflection
-        });
-    }, [isMobile]);
+    const glassMaterial = useMemo(() => new THREE.MeshPhysicalMaterial({
+        color: '#ffffff',
+        roughness: 0.05,        
+        metalness: 0.05,
+        transmission: 1.0,      
+        thickness: 0.5,         
+        ior: 1.5,              
+        clearcoat: 1.0,
+        attenuationTint: '#ffffff',
+        attenuationDistance: 0.5,
+        envMapIntensity: 2.0    
+    }), []);
+
+    const coffeeLiquidMaterial = useMemo(() => new THREE.MeshStandardMaterial({
+        color: '#3b1c0a',       
+        roughness: 0.3,         
+        metalness: 0.0,
+        envMapIntensity: 0.5
+    }), []);
 
     const chromeMaterial = useMemo(() => new THREE.MeshStandardMaterial({
-        color: '#ffffff',
-        roughness: 0.1,
+        color: '#aaaaaa',
+        roughness: 0.2,
         metalness: 1.0,
+        envMapIntensity: 1.5
     }), []);
 
     const blackMaterial = useMemo(() => new THREE.MeshStandardMaterial({
-        color: '#1a1a1a',
-        roughness: 0.8
+        color: '#0a0a0a',
+        roughness: 0.8,
+        metalness: 0.1
     }), []);
 
-    // Optimization: Slightly smaller scale as requested
     const scale = isMobile ? 0.55 : 0.75;
     const position = isMobile ? [0, 0.5, 0] : [0.2, -0.2, 0];
 
     return (
         <group ref={ref} scale={scale} rotation={[0, -Math.PI / 4, 0]} position={position}>
-            {/* Bottom Chamber - Faceted */}
-            <mesh position={[0, -0.8, 0]} castShadow={shadowEnabled} receiveShadow={shadowEnabled}>
-                <cylinderGeometry args={[0.7, 0.9, 1.4, 8]} />
-                <primitive object={bodyMaterial} />
-            </mesh>
+            
+            <group position={[0, -0.8, 0]}>
+                <mesh castShadow={shadowEnabled} receiveShadow={shadowEnabled}>
+                    <cylinderGeometry args={[0.7, 0.9, 1.4, detail]} />
+                    <primitive object={glassMaterial} />
+                </mesh>
+                <mesh scale={[0.92, 0.9, 0.92]} position={[0, -0.1, 0]}>
+                    <cylinderGeometry args={[0.7, 0.9, 1.2, detail]} />
+                    <primitive object={coffeeLiquidMaterial} />
+                </mesh>
+            </group>
 
-            {/* Middle Ring - Accent */}
             <mesh position={[0, -0.05, 0]}>
                 <cylinderGeometry args={[0.72, 0.72, 0.15, detail]} />
-                <primitive object={bodyMaterial} />
+                <primitive object={chromeMaterial} />
             </mesh>
 
-            {/* Top Chamber - Faceted */}
-            <mesh position={[0, 0.7, 0]} castShadow={shadowEnabled} receiveShadow={shadowEnabled}>
-                <cylinderGeometry args={[0.9, 0.7, 1.4, 8]} />
-                <primitive object={bodyMaterial} />
-            </mesh>
+            <group position={[0, 0.7, 0]}>
+                <mesh castShadow={shadowEnabled} receiveShadow={shadowEnabled}>
+                    <cylinderGeometry args={[0.9, 0.7, 1.4, detail]} />
+                    <primitive object={glassMaterial} />
+                </mesh>
+                <mesh scale={[0.92, 0.8, 0.92]} position={[0, -0.15, 0]}>
+                    <cylinderGeometry args={[0.9, 0.7, 1.4, detail]} />
+                    <primitive object={coffeeLiquidMaterial} />
+                </mesh>
+            </group>
 
-            {/* Lid - Faceted */}
-            <mesh position={[0, 1.5, 0]}>
-                <cylinderGeometry args={[0.91, 0.4, 0.2, 8]} />
-                <primitive object={bodyMaterial} />
-            </mesh>
-            <mesh position={[0, 1.7, 0]}>
-                <coneGeometry args={[0.91, 0.4, 8]} />
-                <primitive object={bodyMaterial} />
-            </mesh>
+            <group position={[0, 1.5, 0]}>
+                <mesh>
+                    <cylinderGeometry args={[0.91, 0.4, 0.2, detail]} />
+                    <primitive object={glassMaterial} />
+                </mesh>
+                <mesh position={[0, 0.2, 0]}>
+                    <coneGeometry args={[0.91, 0.4, detail]} />
+                    <primitive object={glassMaterial} />
+                </mesh>
+            </group>
 
-            {/* Top Knob - Smooth */}
             <mesh position={[0, 2.0, 0]}>
                 <cylinderGeometry args={[0.15, 0.1, 0.35, detail]} />
                 <primitive object={blackMaterial} />
@@ -97,13 +107,11 @@ function MokaPot({ isMobile }) {
                 <primitive object={blackMaterial} />
             </mesh>
 
-            {/* Spout - Smoother connection */}
             <mesh position={[0.65, 1.3, 0]} rotation={[0, 0, -Math.PI / 6]}>
-                <cylinderGeometry args={[0.15, 0.25, 0.6, 8]} />
-                <primitive object={bodyMaterial} />
+                <cylinderGeometry args={[0.15, 0.25, 0.6, detail]} />
+                <primitive object={glassMaterial} />
             </mesh>
 
-            {/* Handle - Refined */}
             <group position={[-0.95, 0.5, 0]}>
                 <mesh position={[0, -0.4, 0]} rotation={[0, 0, 0.05]}>
                     <capsuleGeometry args={[0.12, 1.2, 8, 16]} />
@@ -135,20 +143,60 @@ function SceneContent() {
     return (
         <>
             <PerspectiveCamera makeDefault position={[0, 0, 7.5]} fov={30} ref={cameraRef} />
-            <ambientLight intensity={0.5} />
-            <spotLight position={[5, 10, 5]} angle={0.5} penumbra={0.5} intensity={0.4} color="#ffffff" castShadow={!isMobile} />
-            <spotLight position={[-8, 2, -5]} angle={0.5} penumbra={1} intensity={0.2} color="#D8BFD8" />
-            <rectAreaLight position={[0, 5, 10]} width={10} height={10} intensity={0.2} color="#B5A0D9" />
-            <Environment preset="city" />
+            
+            <ambientLight intensity={0.4} color="#ffffff" />
+            
+            <spotLight 
+                position={[5, 5, 5]} 
+                angle={0.5} 
+                penumbra={1} 
+                intensity={0.8} 
+                color="#fff0dd" 
+                castShadow={!isMobile} 
+                shadow-bias={-0.0001}
+            />
+            
+            <spotLight 
+                position={[-5, 5, -5]} 
+                angle={0.5} 
+                penumbra={1} 
+                intensity={1.0} 
+                color="#dcd0ff" 
+            />
+
+            <spotLight 
+                position={[0, -5, 5]} 
+                intensity={0.3} 
+                color="#white" 
+            />
+            
+            <Environment preset="city" blur={1} />
+            
             <Float speed={1.5} rotationIntensity={0.2} floatIntensity={0.2}>
                 <MokaPot isMobile={isMobile} />
             </Float>
-            <Sparkles count={isMobile ? 15 : 25} scale={5} size={4} speed={0.5} opacity={0.5} color="#D8BFD8" />
-            <ContactShadows position={[0, -2.5, 0]} opacity={0.4} scale={10} blur={3} far={4} color="black" frames={isMobile ? 1 : Infinity} />
+            
+            <Sparkles 
+                count={isMobile ? 15 : 30} 
+                scale={6} 
+                size={3} 
+                speed={0.4} 
+                opacity={0.4} 
+                color="#E6E6FA" 
+            />
+            
+            <ContactShadows 
+                position={[0, -2.5, 0]} 
+                opacity={0.4} 
+                scale={10} 
+                blur={2.5} 
+                far={4} 
+                color="#000000" 
+                frames={isMobile ? 1 : 60}
+            />
         </>
     );
 }
-
 export default function HeroSection({ startAnimation = true }) {
     const container = useRef(null);
     const textLeft = useRef(null);
