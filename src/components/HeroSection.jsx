@@ -22,23 +22,23 @@ function MokaPot({ isMobile }) {
     const detail = isMobile ? 12 : 32;
     const shadowEnabled = !isMobile;
 
-    const lavenderMaterial = useMemo(() => {
+    const bodyMaterial = useMemo(() => {
         if (isMobile) {
             return new THREE.MeshStandardMaterial({
-                color: '#6B5B95', // Darker purple so it doesn't look white under bright light
-                roughness: 0.3,
+                color: '#050505',
+                roughness: 0.2,
                 metalness: 0.4,
-                envMapIntensity: 1.0
+                envMapIntensity: 0.1
             });
         }
         return new THREE.MeshPhysicalMaterial({
-            color: '#6B5B95', // Darker purple base
-            roughness: 0.2,
-            metalness: 0.4,
-            clearcoat: 0.5,
+            color: '#000000',
+            roughness: 0.25,  // Slightly rougher to diffuse the reflection
+            metalness: 0.4,   // Less metallic = less white reflection
+            clearcoat: 0.8,   // Keep the shine
             clearcoatRoughness: 0.1,
-            reflectivity: 0.5,
-            envMapIntensity: 1.5
+            reflectivity: 0.1, // Minimal base reflectivity
+            envMapIntensity: 0.1 // Drastically reduced environment reflection
         });
     }, [isMobile]);
 
@@ -62,29 +62,29 @@ function MokaPot({ isMobile }) {
             {/* Bottom Chamber - Faceted */}
             <mesh position={[0, -0.8, 0]} castShadow={shadowEnabled} receiveShadow={shadowEnabled}>
                 <cylinderGeometry args={[0.7, 0.9, 1.4, 8]} />
-                <primitive object={lavenderMaterial} />
+                <primitive object={bodyMaterial} />
             </mesh>
 
             {/* Middle Ring - Accent */}
             <mesh position={[0, -0.05, 0]}>
                 <cylinderGeometry args={[0.72, 0.72, 0.15, detail]} />
-                <primitive object={lavenderMaterial} />
+                <primitive object={bodyMaterial} />
             </mesh>
 
             {/* Top Chamber - Faceted */}
             <mesh position={[0, 0.7, 0]} castShadow={shadowEnabled} receiveShadow={shadowEnabled}>
                 <cylinderGeometry args={[0.9, 0.7, 1.4, 8]} />
-                <primitive object={lavenderMaterial} />
+                <primitive object={bodyMaterial} />
             </mesh>
 
             {/* Lid - Faceted */}
             <mesh position={[0, 1.5, 0]}>
                 <cylinderGeometry args={[0.91, 0.4, 0.2, 8]} />
-                <primitive object={lavenderMaterial} />
+                <primitive object={bodyMaterial} />
             </mesh>
             <mesh position={[0, 1.7, 0]}>
                 <coneGeometry args={[0.91, 0.4, 8]} />
-                <primitive object={lavenderMaterial} />
+                <primitive object={bodyMaterial} />
             </mesh>
 
             {/* Top Knob - Smooth */}
@@ -100,7 +100,7 @@ function MokaPot({ isMobile }) {
             {/* Spout - Smoother connection */}
             <mesh position={[0.65, 1.3, 0]} rotation={[0, 0, -Math.PI / 6]}>
                 <cylinderGeometry args={[0.15, 0.25, 0.6, 8]} />
-                <primitive object={lavenderMaterial} />
+                <primitive object={bodyMaterial} />
             </mesh>
 
             {/* Handle - Refined */}
@@ -136,9 +136,9 @@ function SceneContent() {
         <>
             <PerspectiveCamera makeDefault position={[0, 0, 7.5]} fov={30} ref={cameraRef} />
             <ambientLight intensity={0.5} />
-            <spotLight position={[5, 10, 5]} angle={0.5} penumbra={0.5} intensity={2} color="#ffffff" castShadow={!isMobile} />
-            <spotLight position={[-8, 2, -5]} angle={0.5} penumbra={1} intensity={2} color="#D8BFD8" />
-            <rectAreaLight position={[0, 5, 10]} width={10} height={10} intensity={2.0} color="#B5A0D9" />
+            <spotLight position={[5, 10, 5]} angle={0.5} penumbra={0.5} intensity={0.4} color="#ffffff" castShadow={!isMobile} />
+            <spotLight position={[-8, 2, -5]} angle={0.5} penumbra={1} intensity={0.2} color="#D8BFD8" />
+            <rectAreaLight position={[0, 5, 10]} width={10} height={10} intensity={0.2} color="#B5A0D9" />
             <Environment preset="city" />
             <Float speed={1.5} rotationIntensity={0.2} floatIntensity={0.2}>
                 <MokaPot isMobile={isMobile} />
@@ -190,7 +190,7 @@ export default function HeroSection({ startAnimation = true }) {
     }, [startAnimation]);
 
     return (
-        <section ref={container} className="relative h-screen w-full bg-[#111] overflow-hidden flex flex-col items-center justify-center">
+        <section ref={container} className="relative h-screen w-full bg-[#050505] overflow-hidden flex flex-col items-center justify-center">
             <div className="absolute inset-0 pointer-events-none">
                 <div className="absolute top-[-20%] left-[20%] w-[60%] h-[60%] bg-[#B5A0D9]/10 blur-[150px] rounded-full" />
             </div>
