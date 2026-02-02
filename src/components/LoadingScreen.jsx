@@ -1,35 +1,60 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useProgress } from '@react-three/drei';
+import PropTypes from 'prop-types';
 
 export default function LoadingScreen({ onComplete }) {
-    const { progress, active } = useProgress();
+    const { progress } = useProgress();
     const [displayProgress, setDisplayProgress] = useState(0);
+    const [isMobile, setIsMobile] = useState(false);
 
     useEffect(() => {
-        // Smoothly interpolate progress to avoid jumping
-        if (progress > displayProgress) {
-            const timer = setTimeout(() => {
-                setDisplayProgress(Math.min(displayProgress + 5, progress));
-            }, 20);
-            return () => clearTimeout(timer);
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+        };
+        
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
+    useEffect(() => {
+        let incrementAmount = 1;
+        let intervalTime = 30;
+
+        if (isMobile && progress === 0) {
+            incrementAmount = 2; 
+            intervalTime = 20;   
         }
-    }, [progress, displayProgress]);
+
+        const interval = setInterval(() => {
+            setDisplayProgress(prev => {
+                if (prev >= 100) return 100;
+                
+                if (isMobile && progress === 0) {
+                    return Math.min(100, prev + incrementAmount);
+                }
+                
+                const target = progress > prev ? progress : prev + 1;
+                return Math.min(100, target);
+            });
+        }, intervalTime);
+
+        return () => clearInterval(interval);
+    }, [progress, isMobile]);
 
     useEffect(() => {
-        // When actual loading is done (active is false or progress is 100)
-        // We wait a bit to ensure the transition is smooth
-        if ((progress === 100 || !active) && displayProgress >= 99) {
+        if (displayProgress === 100) {
             const timeout = setTimeout(() => {
                 onComplete();
             }, 500);
             return () => clearTimeout(timeout);
         }
-    }, [progress, active, displayProgress, onComplete]);
+    }, [displayProgress, onComplete]);
 
     return (
         <motion.div
-            className="fixed inset-0 z-[10000] bg-[#1a1a1a] flex flex-col items-center justify-center text-[#f5f5f5]"
+            className="fixed inset-0 z-[10000] bg-black flex flex-col items-center justify-center text-[#f5f5f5]"
             initial={{ opacity: 1 }}
             exit={{ y: '-100%', transition: { duration: 0.8, ease: [0.76, 0, 0.24, 1] } }}
         >
@@ -58,3 +83,7 @@ export default function LoadingScreen({ onComplete }) {
         </motion.div>
     );
 }
+
+LoadingScreen.propTypes = {
+    onComplete: PropTypes.func.isRequired
+};
